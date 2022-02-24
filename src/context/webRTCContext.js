@@ -70,7 +70,7 @@ const WebRTCContextProvider = ({ children }) => {
         },
       });
     });
-  }, []);
+  }, [socket]);
 
   const callUser = async (id) => {
     const PeerConnection = new RTCPeerConnection(configuration);

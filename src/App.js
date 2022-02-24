@@ -1,24 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+
+import Login from "./components/Login";
+import OnlineUsersList from "./components/OnlineUsersList";
+import CallComponent from "./components/CallComponent";
+import Notification from "./components/Notification";
+
+import { Container, Row, Col } from "react-bootstrap";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container>
+      <Notification />
+      <Row>
+        <Col md={6}>
+          <Login />
+        </Col>
+        <Col md={6}>
+          <OnlineUsersList />
+        </Col>
+        <Row className="mt-4">
+          <CallComponent />
+        </Row>
+      </Row>
+    </Container>
   );
 }
 

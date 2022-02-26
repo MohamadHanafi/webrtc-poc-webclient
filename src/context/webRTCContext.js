@@ -24,28 +24,25 @@ const WebRTCContextProvider = ({ children }) => {
   const userAudio = useRef();
   const connectionRef = useRef();
 
-  // const configuration = {
-  //   iceServers: [
-  //     { urls: ["stun:fr-turn1.xirsys.com"] },
-  //     {
-  //       username:
-  //         "ZXsuA3mlsPL_M_6NcBBqGj-YVmYBix9uKBOkjrPQZikUNhbR3Exs0yPsq2R8z79CAAAAAGIV3q5Nb2hhbWFkSGFuYWZp",
-  //       credential: "2652ca44-9478-11ec-aaf8-0242ac120004",
-  //       urls: [
-  //         "turn:fr-turn1.xirsys.com:80?transport=udp",
-  //         "turn:fr-turn1.xirsys.com:3478?transport=udp",
-  //         "turn:fr-turn1.xirsys.com:80?transport=tcp",
-  //         "turn:fr-turn1.xirsys.com:3478?transport=tcp",
-  //         "turns:fr-turn1.xirsys.com:443?transport=tcp",
-  //         "turns:fr-turn1.xirsys.com:5349?transport=tcp",
-  //       ],
-  //     },
-  //   ],
-  // };
-
   const configuration = {
-    iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
+    iceServers: [
+      { urls: ["stun:fr-turn1.xirsys.com"] },
+      {
+        username:
+          "ZXsuA3mlsPL_M_6NcBBqGj-YVmYBix9uKBOkjrPQZikUNhbR3Exs0yPsq2R8z79CAAAAAGIV3q5Nb2hhbWFkSGFuYWZp",
+        credential: "2652ca44-9478-11ec-aaf8-0242ac120004",
+        urls: [
+          "turn:fr-turn1.xirsys.com:80?transport=udp",
+          "turn:fr-turn1.xirsys.com:3478?transport=udp",
+          "turn:fr-turn1.xirsys.com:80?transport=tcp",
+          "turn:fr-turn1.xirsys.com:3478?transport=tcp",
+          "turns:fr-turn1.xirsys.com:443?transport=tcp",
+          "turns:fr-turn1.xirsys.com:5349?transport=tcp",
+        ],
+      },
+    ],
   };
+
   const offerOptions = {
     offerToReceiveAudio: 1,
     offerToReceiveVideo: 0,
@@ -75,8 +72,16 @@ const WebRTCContextProvider = ({ children }) => {
   const callUser = async (id) => {
     const PeerConnection = new RTCPeerConnection(configuration);
 
+    localStream
+      .getTracks()
+      .forEach((track) => PeerConnection.addTrack(track, localStream));
+    console.log("Added local stream tracks to peer connection");
+
     PeerConnection.onicecandidate = (event) => {
-      socket.emit("newIceCandidate", { candidate: event.candidate, to: id });
+      console.log("icecandidate event: ", event);
+      if (event.candidate) {
+        socket.emit("newIceCandidate", { candidate: event.candidate, to: id });
+      }
     };
 
     PeerConnection.oniceconnectionstatechange = (event) => {
@@ -97,11 +102,6 @@ const WebRTCContextProvider = ({ children }) => {
       userAudio.current.srcObject = event.streams[0];
     };
 
-    localStream
-      .getTracks()
-      .forEach((track) => PeerConnection.addTrack(track, localStream));
-    console.log("Added local stream tracks to peer connection");
-
     console.log("starting creating offer");
 
     const offer = await PeerConnection.createOffer(offerOptions);
@@ -120,8 +120,7 @@ const WebRTCContextProvider = ({ children }) => {
       setCallAccepted(true);
       console.log(`call accepted with answer: ${answer}`);
       try {
-        const answerDesc = new RTCSessionDescription(answer);
-        await PeerConnection.setRemoteDescription(answerDesc);
+        await PeerConnection.setRemoteDescription(answer);
         console.log("answer set to remote description");
       } catch (err) {
         console.log("Error during setting remote description", err);
@@ -136,10 +135,13 @@ const WebRTCContextProvider = ({ children }) => {
     const PeerConnection = new RTCPeerConnection(configuration);
 
     PeerConnection.onicecandidate = (event) => {
-      socket.emit("newIceCandidate", {
-        candidate: event.candidate,
-        to: call.caller.socketId,
-      });
+      console.log("icecandidate event: ", event);
+      if (event.candidate) {
+        socket.emit("newIceCandidate", {
+          candidate: event.candidate,
+          to: call.caller.socketId,
+        });
+      }
     };
 
     PeerConnection.oniceconnectionstatechange = (event) => {
@@ -147,9 +149,10 @@ const WebRTCContextProvider = ({ children }) => {
       console.log("ICE state change event: ", event);
     };
 
-    socket.on("newIceCandidate", ({ candidate }) => {
+    socket.on("newIceCandidate", async ({ candidate }) => {
+      console.log("new ice candidate received");
       try {
-        PeerConnection.addIceCandidate(candidate);
+        await PeerConnection.addIceCandidate(candidate);
       } catch (err) {
         console.log(err);
       }

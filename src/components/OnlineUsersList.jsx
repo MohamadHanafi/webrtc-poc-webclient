@@ -1,11 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Table } from "react-bootstrap";
-import { useSelector } from "react-redux";
-import { WebRTCContext } from "../context/webRTCContext";
+import { useSelector, useDispatch } from "react-redux";
+import { callUser } from "../redux/actions/callActions";
 
 const OnlineUsersList = () => {
-  const { callUser } = useContext(WebRTCContext);
-
+  const dispatch = useDispatch();
   const { onlineUsers, mySocketId } = useSelector((state) => state.socket);
   const [users, setUsers] = useState([]);
 
@@ -31,7 +30,7 @@ const OnlineUsersList = () => {
               {user.socketId !== mySocketId ? (
                 <Button
                   variant="primary"
-                  onClick={() => callUser(user.socketId)}
+                  onClick={() => dispatch(callUser(user.socketId))}
                 >
                   Call
                 </Button>

@@ -1,16 +1,19 @@
+import { gotStream, handleOnIceConnectionStateChange } from "../../helpers";
 import {
   ACCEPT_CALL,
+  END_CALL,
   GOT_USER_AUDIO,
   REQUEST_AUDIO_PERMISSION,
   SET_PEER_CONNECTION,
 } from "../constants/callConstants";
 import {
+  EMIT_ANSWER_CALL,
+  EMIT_CALL_USER,
   EMIT_NEW_ICE_CANDIDATE,
   LISTEN_CALL_ACCEPTED,
   LISTEN_NEW_ICE_CANDIDATE,
 } from "../constants/socketConstants";
 import { emitter, listener } from "./socketActions";
-import { gotStream } from "../../helpers";
 
 const peerConfiguration = {
   iceServers: [
@@ -72,19 +75,28 @@ export const callUser = (id) => async (dispatch, getState) => {
 
   const offer = await peerConnection.createOffer(offerOptions);
   await peerConnection.setLocalDescription(offer);
+
   dispatch(
-    emitter("callUser", {
-      offer,
-      userToCall: id,
-      callerId: mySocketId,
-      name: userInfo.name,
-    })
+    emitter(
+      "callUser",
+      {
+        offer,
+        userToCall: id,
+        callerId: mySocketId,
+        name: userInfo.name,
+      },
+      EMIT_CALL_USER
+    )
   );
 
-  dispatch(listener("callAccepted", LISTEN_CALL_ACCEPTED));
-
-  const { answer } = getState().socket;
-  await peerConnection.setRemoteDescription(answer);
+  dispatch(
+    listener("callAccepted", LISTEN_CALL_ACCEPTED, async function (data) {
+      dispatch({ type: ACCEPT_CALL });
+      if (data.answer) {
+        await peerConnection.setRemoteDescription(data.answer);
+      }
+    })
+  );
 
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
@@ -99,62 +111,106 @@ export const callUser = (id) => async (dispatch, getState) => {
   };
 
   peerConnection.oniceconnectionstatechange = (event) => {
-    console.log(`ICE connection state: ${peerConnection.iceConnectionState}`);
-    console.log("ICE state change event: ", event);
+    handleOnIceConnectionStateChange(event, peerConnection);
   };
 
-  dispatch(listener("newIceCandidate", LISTEN_NEW_ICE_CANDIDATE));
-
-  const { candidate } = getState().socket;
-  if (candidate) {
-    await peerConnection.addIceCandidate(candidate);
-  }
+  dispatch(
+    listener(
+      "newIceCandidate",
+      LISTEN_NEW_ICE_CANDIDATE,
+      async function (data) {
+        if (data.candidate) {
+          await peerConnection.addIceCandidate(data.candidate);
+        }
+      }
+    )
+  );
 
   peerConnection.ontrack = (event) => {
-    console.log("ontrack event: ", event);
     dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
   };
 
   dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });
 };
 
-const answerCall = () => async (dispatch, getState) => {
+export const answerCall = () => async (dispatch, getState) => {
   const { call } = getState().socket;
   const { audioStream } = getState().call;
 
-  dispatch(ACCEPT_CALL);
+  dispatch({ type: ACCEPT_CALL });
 
   const peerConnection = new RTCPeerConnection(peerConfiguration);
 
   peerConnection.onicecandidate = (event) => {
-    console.log("icecandidate event: ", event);
     if (event.candidate) {
       dispatch(
-        emitter("newIceCandidate", EMIT_NEW_ICE_CANDIDATE, {
-          candidate: event.candidate,
-          to: call.caller.socketId,
-        })
+        emitter(
+          "newIceCandidate",
+          {
+            candidate: event.candidate,
+            to: call.caller.socketId,
+          },
+          EMIT_NEW_ICE_CANDIDATE
+        )
       );
     }
   };
 
   peerConnection.oniceconnectionstatechange = (event) => {
-    console.log(`ICE connection state: ${peerConnection.iceConnectionState}`);
-    console.log("ICE state change event: ", event);
+    handleOnIceConnectionStateChange(event, peerConnection);
   };
 
-  dispatch(listener("newIceCandidate", LISTEN_NEW_ICE_CANDIDATE));
-  const { candidate } = getState().socket;
-  if (candidate) {
-    await peerConnection.addIceCandidate(candidate);
-  }
+  dispatch(
+    listener(
+      "newIceCandidate",
+      LISTEN_NEW_ICE_CANDIDATE,
+      async function (data) {
+        if (data.candidate) {
+          await peerConnection.addIceCandidate(data.candidate);
+        }
+      }
+    )
+  );
 
   peerConnection.ontrack = (event) => {
-    console.log("ontrack event: ", event);
     dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
   };
 
   if (audioStream) {
     gotStream(audioStream, peerConnection);
   }
+
+  const { offer } = call;
+  try {
+    await peerConnection.setRemoteDescription(offer);
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    dispatch(
+      emitter(
+        "answerCall",
+        {
+          answer,
+          to: call.caller.socketId,
+        },
+        EMIT_ANSWER_CALL
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+
+  dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });
+};
+
+export const leaveCall = () => async (dispatch, getState) => {
+  const { peerConnection, audioStream } = getState().call;
+  peerConnection.close();
+  audioStream.getTracks().forEach((track) => track.stop());
+  dispatch({ type: END_CALL });
 };

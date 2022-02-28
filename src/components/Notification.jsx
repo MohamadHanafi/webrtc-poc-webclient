@@ -1,10 +1,13 @@
 import React from "react";
 import { Button } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { answerCall } from "../redux/actions/callActions";
 
 const Notification = () => {
   // const { answerCall, call, callAccepted } = useContext(WebRTCContext);
-  const { call, callAccepted } = useSelector((state) => state.socket);
+  const dispatch = useDispatch();
+  const { call } = useSelector((state) => state.socket);
+  const { callAccepted } = useSelector((state) => state.call);
 
   return (
     <>
@@ -23,7 +26,7 @@ const Notification = () => {
           <Button
             variant="info"
             onClick={() => {
-              // answerCall();
+              dispatch(answerCall());
             }}
           >
             Answer

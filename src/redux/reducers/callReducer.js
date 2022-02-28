@@ -1,5 +1,6 @@
 import {
   ACCEPT_CALL,
+  END_CALL,
   GOT_USER_AUDIO,
   REQUEST_AUDIO_PERMISSION,
   SET_PEER_CONNECTION,
@@ -17,8 +18,15 @@ export const callReducer = (state = {}, action) => {
       return { ...state, userAudio: action.payload };
     case ACCEPT_CALL:
       return { ...state, callAccepted: true };
-      case SET_PEER_CONNECTION:
-        return { ...state, peerConnection: action.payload}
+    case SET_PEER_CONNECTION:
+      return { ...state, peerConnection: action.payload };
+    case END_CALL:
+      return {
+        ...state,
+        peerConnection: null,
+        callAccepted: false,
+        callEnded: true,
+      };
     default:
       return state;
   }

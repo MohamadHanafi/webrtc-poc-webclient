@@ -5,3 +5,5 @@ export const GOT_USER_AUDIO = "GOT_USER_AUDIO";
 export const ACCEPT_CALL = "ACCEPT_CALL";
 
 export const SET_PEER_CONNECTION = "SET_PEER_CONNECTION";
+
+export const END_CALL = "END_CALL";

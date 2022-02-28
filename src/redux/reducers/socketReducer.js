@@ -1,4 +1,5 @@
 import {
+  EMIT_CALL_USER,
   EMIT_USER_JOINED,
   LISTEN_CALL_ACCEPTED,
   LISTEN_CALL_USER,
@@ -14,6 +15,11 @@ export const socketReducer = (state = {}, action) => {
       return { ...state, socket: action.payload };
     case EMIT_USER_JOINED:
       return { ...state, user: action.payload };
+    case EMIT_CALL_USER:
+      return {
+        ...state,
+        callOffered: action.payload,
+      };
     case LISTEN_ME:
       return { ...state, mySocketId: action.payload };
     case LISTEN_NEW_USER:

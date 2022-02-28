@@ -1,11 +1,11 @@
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Col } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import { getAudioStream } from "../redux/actions/callActions";
 
 const CallComponent = () => {
   const dispatch = useDispatch();
-  const { audioStream } = useSelector((state) => state.call);
+  const { audioStream, userAudio } = useSelector((state) => state.call);
 
   useEffect(() => {
     if (!audioStream) {
@@ -15,7 +15,12 @@ const CallComponent = () => {
       localAudio.srcObject = audioStream;
       localAudio.play();
     }
-  }, [audioStream]);
+    if (userAudio) {
+      const remoteAudio = document.getElementById("remoteVideo");
+      remoteAudio.srcObject = userAudio;
+      remoteAudio.play();
+    }
+  }, [audioStream, userAudio]);
 
   return (
     <>

@@ -11,7 +11,6 @@ export const connectSocket = (serverURL) => async (dispatch) => {
 
 export const emitter =
   (message, data, actionType) => async (dispatch, getState) => {
-    console.log("emitting... ", message);
     const { socket } = getState().socket;
     socket.emit(message, data);
 
@@ -21,13 +20,17 @@ export const emitter =
     });
   };
 
-export const listener = (message, actionType) => async (dispatch, getState) => {
-  console.log("listening to", message);
-  const { socket } = getState().socket;
-  socket.on(message, (data) => {
-    dispatch({
-      type: actionType,
-      payload: data,
+export const listener =
+  (message, actionType, callback) => async (dispatch, getState) => {
+    const { socket } = getState().socket;
+    socket.on(message, (data) => {
+      console.log(data);
+      if (callback) {
+        callback(data);
+      }
+      dispatch({
+        type: actionType,
+        payload: data,
+      });
     });
-  });
-};
+  };

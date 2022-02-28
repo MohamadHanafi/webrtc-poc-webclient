@@ -3,19 +3,15 @@ import ReactDOM from "react-dom";
 import "./bootstrap.min.css";
 import "./index.css";
 import App from "./App";
-import { LoginContextProvider } from "./context/loginContext";
-import { SocketContextProvider } from "./context/socketContext";
-import { WebRTCContextProvider } from "./context/webRTCContext";
+
+import { Provider } from "react-redux";
+import store from "./store";
 
 ReactDOM.render(
   <React.StrictMode>
-    <LoginContextProvider>
-      <SocketContextProvider>
-        <WebRTCContextProvider>
-          <App />
-        </WebRTCContextProvider>
-      </SocketContextProvider>
-    </LoginContextProvider>
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById("root")
 );

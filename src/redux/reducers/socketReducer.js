@@ -3,6 +3,7 @@ import {
   LISTEN_CALL_ACCEPTED,
   LISTEN_CALL_USER,
   LISTEN_ME,
+  LISTEN_NEW_ICE_CANDIDATE,
   LISTEN_NEW_USER,
   SOCKET_CONNECT,
 } from "../constants/socketConstants";
@@ -31,6 +32,11 @@ export const socketReducer = (state = {}, action) => {
       };
     case LISTEN_CALL_ACCEPTED:
       return { ...state, answer: action.payload.answer };
+    case LISTEN_NEW_ICE_CANDIDATE:
+      return {
+        ...state,
+        candidate: action.payload.candidate,
+      };
     default:
       return state;
   }

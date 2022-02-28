@@ -1,4 +1,5 @@
 import {
+  ACCEPT_CALL,
   GOT_USER_AUDIO,
   REQUEST_AUDIO_PERMISSION,
   SET_PEER_CONNECTION,
@@ -6,6 +7,7 @@ import {
 import {
   EMIT_NEW_ICE_CANDIDATE,
   LISTEN_CALL_ACCEPTED,
+  LISTEN_NEW_ICE_CANDIDATE,
 } from "../constants/socketConstants";
 import { emitter, listener } from "./socketActions";
 import { gotStream } from "../../helpers";
@@ -58,15 +60,31 @@ export const getAudioStream = () => async (dispatch) => {
 };
 
 export const callUser = (id) => async (dispatch, getState) => {
-  const peerConnection = new RTCPeerConnection(peerConfiguration);
-
   const { audioStream } = getState().call;
   const { userInfo } = getState().login;
   const { mySocketId } = getState().socket;
 
+  const peerConnection = new RTCPeerConnection(peerConfiguration);
+
   if (audioStream) {
     gotStream(audioStream, peerConnection);
   }
+
+  const offer = await peerConnection.createOffer(offerOptions);
+  await peerConnection.setLocalDescription(offer);
+  dispatch(
+    emitter("callUser", {
+      offer,
+      userToCall: id,
+      callerId: mySocketId,
+      name: userInfo.name,
+    })
+  );
+
+  dispatch(listener("callAccepted", LISTEN_CALL_ACCEPTED));
+
+  const { answer } = getState().socket;
+  await peerConnection.setRemoteDescription(answer);
 
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
@@ -85,34 +103,58 @@ export const callUser = (id) => async (dispatch, getState) => {
     console.log("ICE state change event: ", event);
   };
 
-  //   socket.on("newIceCandidate", async ({ candidate }) => {
-  //     try {
-  //       await peerConnection.addIceCandidate(candidate);
-  //     } catch (err) {
-  //       console.log(err);
-  //     }
-  //   });
+  dispatch(listener("newIceCandidate", LISTEN_NEW_ICE_CANDIDATE));
+
+  const { candidate } = getState().socket;
+  if (candidate) {
+    await peerConnection.addIceCandidate(candidate);
+  }
 
   peerConnection.ontrack = (event) => {
     console.log("ontrack event: ", event);
     dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
   };
 
-  const offer = await peerConnection.createOffer(offerOptions);
-  await peerConnection.setLocalDescription(offer);
-  dispatch(
-    emitter("callUser", {
-      offer,
-      userToCall: id,
-      callerId: mySocketId,
-      name: userInfo.name,
-    })
-  );
-
-  dispatch(listener("callAccepted", LISTEN_CALL_ACCEPTED));
-
-  const { answer } = getState().socket;
-  await peerConnection.setRemoteDescription(answer);
-
   dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });
+};
+
+const answerCall = () => async (dispatch, getState) => {
+  const { call } = getState().socket;
+  const { audioStream } = getState().call;
+
+  dispatch(ACCEPT_CALL);
+
+  const peerConnection = new RTCPeerConnection(peerConfiguration);
+
+  peerConnection.onicecandidate = (event) => {
+    console.log("icecandidate event: ", event);
+    if (event.candidate) {
+      dispatch(
+        emitter("newIceCandidate", EMIT_NEW_ICE_CANDIDATE, {
+          candidate: event.candidate,
+          to: call.caller.socketId,
+        })
+      );
+    }
+  };
+
+  peerConnection.oniceconnectionstatechange = (event) => {
+    console.log(`ICE connection state: ${peerConnection.iceConnectionState}`);
+    console.log("ICE state change event: ", event);
+  };
+
+  dispatch(listener("newIceCandidate", LISTEN_NEW_ICE_CANDIDATE));
+  const { candidate } = getState().socket;
+  if (candidate) {
+    await peerConnection.addIceCandidate(candidate);
+  }
+
+  peerConnection.ontrack = (event) => {
+    console.log("ontrack event: ", event);
+    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
+  };
+
+  if (audioStream) {
+    gotStream(audioStream, peerConnection);
+  }
 };

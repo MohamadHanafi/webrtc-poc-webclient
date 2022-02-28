@@ -1,34 +1,29 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Form, Button } from "react-bootstrap";
-import { LoginContext } from "../context/loginContext";
-import { users } from "../data/users";
+import { loginRequest } from "../redux/actions/loginActions";
 
 const Login = () => {
-  const { isLoggedIn, setIsLoggedIn, setUser } = useContext(LoginContext);
+  const { userInfo, error } = useSelector((state) => state.login);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const dispatch = useDispatch();
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!email || !password) {
       window.alert("Please enter your email and password");
       return;
     }
-    const user = users.find((user) => user.email === email);
-    if (!user) {
-      window.alert("User not found");
-      return;
-    }
-    if (user.password !== password) {
-      window.alert("Incorrect password");
-      return;
-    }
-    setUser(user);
-    setIsLoggedIn(true);
+
+    dispatch(loginRequest(email, password));
   };
 
   return (
-    !isLoggedIn && (
+    !userInfo && (
       <Form className="mt-3" onSubmit={handleSubmit}>
         <h1>Log In</h1>
         <Form.Group controlId="formBasicEmail" className="mb-3">
@@ -50,6 +45,7 @@ const Login = () => {
         <Button variant="primary" type="submit" className="mb-3">
           Login
         </Button>
+        {error && <p className="text-danger">{error}</p>}
       </Form>
     )
   );

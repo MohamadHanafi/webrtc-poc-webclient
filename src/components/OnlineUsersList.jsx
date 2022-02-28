@@ -1,16 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Button, Table } from "react-bootstrap";
-import { SocketContext } from "../context/socketContext";
+import { useSelector } from "react-redux";
 import { WebRTCContext } from "../context/webRTCContext";
 
 const OnlineUsersList = () => {
   const { callUser } = useContext(WebRTCContext);
 
-  const { onlineUsers, mySocketId } = useContext(SocketContext);
+  const { onlineUsers, mySocketId } = useSelector((state) => state.socket);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    setUsers(onlineUsers);
+    if (onlineUsers) {
+      setUsers(onlineUsers);
+    }
   }, [onlineUsers]);
 
   return users.length > 0 ? (

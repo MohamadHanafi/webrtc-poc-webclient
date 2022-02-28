@@ -1,18 +1,12 @@
-import React, {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  useRef,
-} from "react";
-import { LoginContext } from "./loginContext";
-import { SocketContext } from "./socketContext";
+import React, { useState, useEffect, createContext, useRef } from "react";
+
+import { useSelector } from "react-redux";
 
 const WebRTCContext = createContext();
 
 const WebRTCContextProvider = ({ children }) => {
-  const { socket, mySocketId } = useContext(SocketContext);
-  const { user } = useContext(LoginContext);
+  const { socket, mySocketId } = useSelector((state) => state.socket);
+  const { userInfo } = useSelector((state) => state.login);
 
   const [call, setCall] = useState({});
   const [callAccepted, setCallAccepted] = useState(false);
@@ -49,33 +43,32 @@ const WebRTCContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ audio: true, video: false })
-      .then((stream) => {
-        myAudio.current.srcObject = stream;
-        setLocalStream(stream);
-      })
-      .catch((err) => console.log(err));
-
-    socket.on("callUser", ({ offer, from }) => {
-      setCall({
-        isReceivingCall: true,
-        offer,
-        caller: {
-          socketId: from.socketId,
-          name: from.name,
-        },
-      });
-    });
+    // navigator.mediaDevices
+    //   .getUserMedia({ audio: true, video: false })
+    //   .then((stream) => {
+    //     myAudio.current.srcObject = stream;
+    //     setLocalStream(stream);
+    //   })
+    //   .catch((err) => console.log(err));
+    // socket.on("callUser", ({ offer, from }) => {
+    //   setCall({
+    //     isReceivingCall: true,
+    //     offer,
+    //     caller: {
+    //       socketId: from.socketId,
+    //       name: from.name,
+    //     },
+    //   });
+    // });
   }, [socket]);
 
   const callUser = async (id) => {
     const PeerConnection = new RTCPeerConnection(configuration);
 
-    localStream
-      .getTracks()
-      .forEach((track) => PeerConnection.addTrack(track, localStream));
-    console.log("Added local stream tracks to peer connection");
+    // localStream
+    //   .getTracks()
+    //   .forEach((track) => PeerConnection.addTrack(track, localStream));
+    // console.log("Added local stream tracks to peer connection");
 
     PeerConnection.onicecandidate = (event) => {
       console.log("icecandidate event: ", event);
@@ -112,7 +105,7 @@ const WebRTCContextProvider = ({ children }) => {
       offer,
       userToCall: id,
       callerId: mySocketId,
-      name: user.name,
+      name: userInfo.name,
     });
     console.log("awaiting answer");
 

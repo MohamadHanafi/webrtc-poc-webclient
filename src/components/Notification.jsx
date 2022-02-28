@@ -1,13 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Button } from "react-bootstrap";
-
-import { WebRTCContext } from "../context/webRTCContext";
+import { useSelector } from "react-redux";
 
 const Notification = () => {
-  const { answerCall, call, callAccepted } = useContext(WebRTCContext);
+  // const { answerCall, call, callAccepted } = useContext(WebRTCContext);
+  const { call, callAccepted } = useSelector((state) => state.socket);
+
   return (
     <>
-      {call.isReceivingCall && !callAccepted && (
+      {call?.isReceivingCall && !callAccepted && (
         <div
           style={{
             display: "flex",
@@ -22,7 +23,7 @@ const Notification = () => {
           <Button
             variant="info"
             onClick={() => {
-              answerCall();
+              // answerCall();
             }}
           >
             Answer

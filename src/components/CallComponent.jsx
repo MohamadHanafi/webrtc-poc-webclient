@@ -1,24 +1,31 @@
-import React, { useContext } from "react";
+import React, { useRef, useEffect } from "react";
 import { Col } from "react-bootstrap";
-import { WebRTCContext } from "../context/webRTCContext";
+import { useSelector, useDispatch } from "react-redux";
+import { getAudioStream } from "../redux/actions/callActions";
 
 const CallComponent = () => {
-  const { myAudio, userAudio } = useContext(WebRTCContext);
+  const dispatch = useDispatch();
+  const { audioStream } = useSelector((state) => state.call);
+
+  useEffect(() => {
+    if (!audioStream) {
+      dispatch(getAudioStream());
+    } else {
+      const localAudio = document.getElementById("localVideo");
+      localAudio.srcObject = audioStream;
+      localAudio.play();
+    }
+  }, [audioStream]);
 
   return (
     <>
       <Col md={6}>
-        <video
-          id="localVideo"
-          playsInline
-          autoPlay
-          muted
-          controls
-          ref={myAudio}
-        />
+        {audioStream && (
+          <video id="localVideo" playsInline autoPlay muted controls />
+        )}
       </Col>
       <Col md={6}>
-        <video id="remoteVideo" playsInline autoPlay controls ref={userAudio} />
+        <video id="remoteVideo" playsInline autoPlay controls />
       </Col>
     </>
   );

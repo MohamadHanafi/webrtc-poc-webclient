@@ -34,11 +34,6 @@ const peerConfiguration = {
   ],
 };
 
-const offerOptions = {
-  offerToReceiveAudio: 1,
-  offerToReceiveVideo: 1,
-};
-
 export const getAudioStream = () => async (dispatch) => {
   try {
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -73,7 +68,7 @@ export const callUser = (id) => async (dispatch, getState) => {
     gotStream(audioStream, peerConnection);
   }
 
-  const offer = await peerConnection.createOffer(offerOptions);
+  const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
 
   dispatch(
@@ -141,6 +136,31 @@ export const answerCall = () => async (dispatch, getState) => {
 
   const peerConnection = new RTCPeerConnection(peerConfiguration);
 
+  const { offer } = call;
+  try {
+    await peerConnection.setRemoteDescription(offer);
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    dispatch(
+      emitter(
+        "answerCall",
+        {
+          answer,
+          to: call.caller.socketId,
+        },
+        EMIT_ANSWER_CALL
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
       dispatch(
@@ -178,31 +198,6 @@ export const answerCall = () => async (dispatch, getState) => {
 
   if (audioStream) {
     gotStream(audioStream, peerConnection);
-  }
-
-  const { offer } = call;
-  try {
-    await peerConnection.setRemoteDescription(offer);
-  } catch (error) {
-    console.error(error);
-  }
-
-  try {
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-
-    dispatch(
-      emitter(
-        "answerCall",
-        {
-          answer,
-          to: call.caller.socketId,
-        },
-        EMIT_ANSWER_CALL
-      )
-    );
-  } catch (error) {
-    console.error(error);
   }
 
   dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });

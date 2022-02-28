@@ -20,7 +20,7 @@ const CallComponent = () => {
       remoteAudio.srcObject = userAudio;
       remoteAudio.play();
     }
-  }, [audioStream, userAudio]);
+  }, [audioStream, userAudio, dispatch]);
 
   return (
     <>

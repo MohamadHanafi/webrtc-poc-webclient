@@ -25,7 +25,8 @@ function App() {
 
   useEffect(() => {
     dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
-  }, []);
+    // dispatch(connectSocket("http://localhost:5000"));
+  }, [dispatch]);
 
   useEffect(() => {
     if (userInfo) {
@@ -34,7 +35,7 @@ function App() {
       dispatch(listener("newUser", LISTEN_NEW_USER));
       dispatch(listener("callUser", LISTEN_CALL_USER));
     }
-  }, [userInfo]);
+  }, [userInfo, dispatch]);
 
   return (
     <Container>

@@ -42,6 +42,7 @@ export const getAudioStream = () => async (dispatch) => {
   try {
     const audioStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
+      video: true,
     });
     dispatch({
       type: REQUEST_AUDIO_PERMISSION,
@@ -72,9 +73,9 @@ export const callUser = (id) => async (dispatch, getState) => {
     gotStream(audioStream, peerConnection);
   }
 
-  peerConnection.ontrack = (event) => {
-    console.log("ontrack", event.streams[0]);
-    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
+  peerConnection.onaddstream = (event) => {
+    console.log("ontrack", event.stream);
+    dispatch({ type: GOT_USER_AUDIO, payload: event.stream });
   };
 
   const offer = await peerConnection.createOffer();
@@ -145,9 +146,9 @@ export const answerCall = () => async (dispatch, getState) => {
     gotStream(audioStream, peerConnection);
   }
 
-  peerConnection.ontrack = (event) => {
-    console.log("ontrack", event.streams[0]);
-    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
+  peerConnection.onaddstream = (event) => {
+    console.log("ontrack", event.stream);
+    dispatch({ type: GOT_USER_AUDIO, payload: event.stream });
   };
 
   const { offer } = call;

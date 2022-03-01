@@ -24,8 +24,8 @@ function App() {
   const { userInfo } = useSelector((state) => state.login);
 
   useEffect(() => {
-    // dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
-    dispatch(connectSocket("http://localhost:5000"));
+    dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
+    // dispatch(connectSocket("http://localhost:5000"));
   }, [dispatch]);
 
   useEffect(() => {

@@ -15,12 +15,15 @@ const CallComponent = () => {
       localAudio.srcObject = audioStream;
       localAudio.play();
     }
+  }, [audioStream, dispatch]);
+
+  useEffect(() => {
     if (userAudio) {
       const remoteAudio = document.getElementById("remoteVideo");
       remoteAudio.srcObject = userAudio;
       remoteAudio.play();
     }
-  }, [audioStream, userAudio, dispatch]);
+  }, [userAudio, dispatch]);
 
   return (
     <>

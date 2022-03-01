@@ -34,6 +34,10 @@ const peerConfiguration = {
   ],
 };
 
+// export const onCreateAnswerSuccess = (peerConnection) => async (dispatch, getState) => {
+
+// }
+
 export const getAudioStream = () => async (dispatch) => {
   try {
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -67,6 +71,11 @@ export const callUser = (id) => async (dispatch, getState) => {
   if (audioStream) {
     gotStream(audioStream, peerConnection);
   }
+
+  peerConnection.ontrack = (event) => {
+    console.log("ontrack", event.streams[0]);
+    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
+  };
 
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
@@ -121,10 +130,6 @@ export const callUser = (id) => async (dispatch, getState) => {
     )
   );
 
-  peerConnection.ontrack = (event) => {
-    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
-  };
-
   dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });
 };
 
@@ -135,6 +140,15 @@ export const answerCall = () => async (dispatch, getState) => {
   dispatch({ type: ACCEPT_CALL });
 
   const peerConnection = new RTCPeerConnection(peerConfiguration);
+
+  if (audioStream) {
+    gotStream(audioStream, peerConnection);
+  }
+
+  peerConnection.ontrack = (event) => {
+    console.log("ontrack", event.streams[0]);
+    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
+  };
 
   const { offer } = call;
   try {
@@ -191,14 +205,6 @@ export const answerCall = () => async (dispatch, getState) => {
       }
     )
   );
-
-  peerConnection.ontrack = (event) => {
-    dispatch({ type: GOT_USER_AUDIO, payload: event.streams[0] });
-  };
-
-  if (audioStream) {
-    gotStream(audioStream, peerConnection);
-  }
 
   dispatch({ type: SET_PEER_CONNECTION, payload: peerConnection });
 };

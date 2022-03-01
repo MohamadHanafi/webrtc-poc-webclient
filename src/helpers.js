@@ -1,5 +1,8 @@
 export const gotStream = (stream, peerConnection) => {
-  stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+  stream.getTracks().forEach((track) => {
+    console.log(`${track} is added to peerConnection`, peerConnection);
+    peerConnection.addTrack(track, stream);
+  });
 };
 
 export const handleOnIceConnectionStateChange = (event, peerConnection) => {

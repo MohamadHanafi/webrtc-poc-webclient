@@ -25,7 +25,7 @@ function App() {
 
   useEffect(() => {
     dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
-    // dispatch(connectSocket("http://localhost:5000"));
+    // dispatch(connectSocket("https://webrtc-poc-backend.herokuapp.com/"));
   }, [dispatch]);
 
   useEffect(() => {

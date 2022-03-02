@@ -32,6 +32,7 @@ const peerConfiguration = {
       ],
     },
   ],
+  rtcpMuxPolicy: "negotiate",
 };
 
 // export const onCreateAnswerSuccess = (peerConnection) => async (dispatch, getState) => {
@@ -78,7 +79,7 @@ export const callUser = (id) => async (dispatch, getState) => {
     dispatch({ type: GOT_USER_AUDIO, payload: event.stream });
   };
 
-  const offer = await peerConnection.createOffer();
+  const offer = await peerConnection.createOffer({ iceRestart: true });
   await peerConnection.setLocalDescription(offer);
 
   dispatch(
@@ -125,6 +126,7 @@ export const callUser = (id) => async (dispatch, getState) => {
       LISTEN_NEW_ICE_CANDIDATE,
       async function (data) {
         if (data.candidate) {
+          console.log("adding ice candidate", data.candidate);
           await peerConnection.addIceCandidate(data.candidate);
         }
       }
@@ -201,6 +203,7 @@ export const answerCall = () => async (dispatch, getState) => {
       LISTEN_NEW_ICE_CANDIDATE,
       async function (data) {
         if (data.candidate) {
+          console.log("adding ice candidate", data.candidate);
           await peerConnection.addIceCandidate(data.candidate);
         }
       }

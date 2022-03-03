@@ -43,7 +43,7 @@ export const getAudioStream = () => async (dispatch) => {
   try {
     const audioStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: true,
+      video: false,
     });
     dispatch({
       type: REQUEST_AUDIO_PERMISSION,

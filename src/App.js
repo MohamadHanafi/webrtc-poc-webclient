@@ -7,35 +7,28 @@ import Notification from "./components/Notification";
 
 import { Container, Row, Col } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  connectSocket,
-  emitter,
-  listener,
-} from "./redux/actions/socketActions";
-import {
-  EMIT_USER_JOINED,
-  LISTEN_ME,
-  LISTEN_NEW_USER,
-  LISTEN_CALL_USER,
-} from "./redux/constants/socketConstants";
+import { connectSocket } from "./redux/actions/socketActions";
 
 function App() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.login);
+  const { socket } = useSelector((state) => state.socket);
 
   useEffect(() => {
-    dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
+    // dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
+    // dispatch(connectSocket("http://localhost:5000"));
     // dispatch(connectSocket("https://webrtc-poc-backend.herokuapp.com/"));
+    dispatch(connectSocket("http://localhost:5000", userInfo));
   }, [dispatch]);
 
   useEffect(() => {
-    if (userInfo) {
-      dispatch(emitter("userJoined", userInfo, EMIT_USER_JOINED));
-      dispatch(listener("me", LISTEN_ME));
-      dispatch(listener("newUser", LISTEN_NEW_USER));
-      dispatch(listener("callUser", LISTEN_CALL_USER));
+    if (socket && userInfo) {
+      socket.emitUserJoined(userInfo);
+      socket.listenForMySocketId();
+      socket.listenForIncomingCall();
+      socket.listenForOnlineUsers();
     }
-  }, [userInfo, dispatch]);
+  }, [userInfo]);
 
   return (
     <Container>
@@ -47,9 +40,7 @@ function App() {
         <Col md={6}>
           <OnlineUsersList />
         </Col>
-        <Row className="mt-4">
-          <CallComponent />
-        </Row>
+        <Row className="mt-4">{/* <CallComponent /> */}</Row>
       </Row>
     </Container>
   );

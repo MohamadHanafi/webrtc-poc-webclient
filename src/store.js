@@ -13,7 +13,9 @@ const reducer = combineReducers({
 
 const middleware = [thunk];
 
-const initialState = {};
+const initialState = {
+  socket: { socket: {} },
+};
 
 const store = createStore(
   reducer,

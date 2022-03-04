@@ -5,18 +5,16 @@ import { callUser } from "../redux/actions/callActions";
 
 const OnlineUsersList = () => {
   const dispatch = useDispatch();
-  const { socket } = useSelector((state) => state.socket);
-  // const onlineUsers = {};
-  // const mySocketId = null;
-  const { onlineUsers, mySocketId } = socket;
+  const { socket, onlineUsers, mySocketId } = useSelector(
+    (state) => state.socket
+  );
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
     if (onlineUsers) {
       setUsers(onlineUsers);
     }
-    console.log(onlineUsers);
-  }, [socket, onlineUsers]);
+  }, [onlineUsers]);
 
   return users.length > 0 ? (
     <Table striped bordered hover responsive className="table-sm mt-3">

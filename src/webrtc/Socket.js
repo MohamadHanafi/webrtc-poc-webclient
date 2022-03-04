@@ -2,9 +2,9 @@ import { io } from "socket.io-client";
 
 export class Socket {
   socket;
-  mySocketId;
-  onlineUsers = [];
-  call = {};
+  // mySocketId;
+  // onlineUsers = [];
+  // call = {};
 
   constructor(serverURL) {
     this.socket = io(serverURL);
@@ -22,28 +22,30 @@ export class Socket {
     });
   };
 
-  listenForMySocketId = () => {
-    this.listener("me", (id) => {
-      this.mySocketId = id;
-    });
-  };
+  // listenForMySocketId = () => {
+  //   this.listener("me", (id) => {
+  //     this.mySocketId = id;
+  //   });
+  // };
 
-  listenForOnlineUsers = () => {
-    this.listener("newUser", (users) => (this.onlineUsers = users));
-  };
+  // listenForOnlineUsers = () => {
+  //   this.listener("newUser", (users) => {
+  //     this.onlineUsers = users;
+  //   });
+  // };
 
-  listenForIncomingCall = () => {
-    this.listener("callUser", ({ offer, from: { socketId, name } }) => {
-      this.call = {
-        isReceivingCall: true,
-        offer,
-        caller: {
-          name,
-          socketId,
-        },
-      };
-    });
-  };
+  // listenForIncomingCall = () => {
+  //   this.listener("callUser", ({ offer, from: { socketId, name } }) => {
+  //     this.call = {
+  //       isReceivingCall: true,
+  //       offer,
+  //       caller: {
+  //         name,
+  //         socketId,
+  //       },
+  //     };
+  //   });
+  // };
 
   emitUserJoined = (userInfo) => {
     this.emitter("userJoined", userInfo);

@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { answerCall } from "../redux/actions/callActions";
 
 const Notification = () => {
-  // const { answerCall, call, callAccepted } = useContext(WebRTCContext);
   const dispatch = useDispatch();
   const { call } = useSelector((state) => state.socket);
   const { callAccepted } = useSelector((state) => state.call);

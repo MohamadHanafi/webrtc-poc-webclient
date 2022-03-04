@@ -24,28 +24,47 @@ export class Peer {
   socket;
   initiator;
   userToBeCalled;
+  isCallAccepted;
+  call;
 
   constructor({ localStream, socket, isInitiator = false }) {
+    console.log("Peer constructor", localStream, socket, isInitiator);
     this.peerConnection = new RTCPeerConnection(this.peerConfiguration);
     this.localStream = localStream;
     this.socket = socket;
     this.initiator = isInitiator;
+    this.addStream();
+    this.bindListeners();
   }
 
+  bindListeners = () => {
+    this.peerConnection.onicecandidate = this.handleOnIceCandidate;
+    this.peerConnection.oniceconnectionstatechange =
+      this.handleOnIceConnectionStateChange;
+    this.handleNewIceCandidate();
+  };
+
   setUserToBeCalled = (id) => {
-    this.userToBeCalled = userToBeCalled;
+    this.userToBeCalled = id;
   };
 
-  addStream = () => {
-    this.peerConnection.addStream(this.LocalStream);
+  addStream = async () => {
+    try {
+      await this.peerConnection.addStream(this.localStream);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  handleOnAddStream = (event) => {
-    console.log("ontrack", event.stream);
-    this.remoteStream = event.stream;
+  onaddstream = (callback) => {
+    this.peerConnection.onaddstream = (event) => {
+      console.log("ontrack", event.stream);
+      this.remoteStream = event.stream;
+      callback && callback(this.remoteStream);
+    };
   };
 
-  handleOffers = async (config = null) => {
+  handleOffers = async ({ config = null, mySocketId, name }) => {
     try {
       if (this.initiator) {
         const offer = await this.peerConnection.createOffer(config);
@@ -53,8 +72,8 @@ export class Peer {
         this.socket.emitter("callUser", {
           offer,
           userToCall: this.userToBeCalled,
-          callerId: this.socket.mySocketId,
-          name: this.socket.myName,
+          callerId: mySocketId,
+          name,
         });
       } else {
         await this.peerConnection.setRemoteDescription(this.call.offer);
@@ -64,11 +83,12 @@ export class Peer {
     }
   };
 
-  handleAnswers = async () => {
+  handleAnswers = async (callback) => {
     try {
       if (this.initiator) {
         this.socket.listener("callAccepted", async ({ answer }) => {
           await this.peerConnection.setRemoteDescription(answer);
+          callback();
         });
       } else {
         const answer = await this.peerConnection.createAnswer();
@@ -88,7 +108,7 @@ export class Peer {
       let to;
       this.initiator
         ? (to = this.userToBeCalled)
-        : (to = this.socket.call.caller.socketId);
+        : (to = this.call.caller.socketId);
       this.socket.emitter("newIceCandidate", {
         candidate: event.candidate,
         to,
@@ -111,5 +131,13 @@ export class Peer {
         console.error(error);
       }
     });
+  };
+
+  setCall = (call) => {
+    this.call = call;
+  };
+
+  handleEndCall = () => {
+    this.peerConnection.close();
   };
 }

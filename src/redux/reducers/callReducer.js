@@ -1,32 +1,29 @@
 import {
-  ACCEPT_CALL,
-  END_CALL,
-  GOT_USER_AUDIO,
-  REQUEST_AUDIO_PERMISSION,
+  GET_AUDIO_STREAM,
+  GET_AUDIO_STREAM_FAIL,
+  RESET_CALL,
+  SET_CALL_ACCEPTED,
+  SET_CALL_ENDED,
   SET_PEER_CONNECTION,
+  SET_USER_AUDIO,
 } from "../constants/callConstants";
 
 export const callReducer = (state = {}, action) => {
   switch (action.type) {
-    case REQUEST_AUDIO_PERMISSION:
-      return {
-        ...state,
-        audioStream: action.payload.audioStream,
-        error: action.payload.error,
-      };
-    case GOT_USER_AUDIO:
-      return { ...state, userAudio: action.payload };
-    case ACCEPT_CALL:
-      return { ...state, callAccepted: true };
+    case GET_AUDIO_STREAM:
+      return { ...state, localStream: action.payload };
+    case GET_AUDIO_STREAM_FAIL:
+      return { ...state, error: action.payload };
     case SET_PEER_CONNECTION:
       return { ...state, peerConnection: action.payload };
-    case END_CALL:
-      return {
-        ...state,
-        peerConnection: null,
-        callAccepted: false,
-        callEnded: true,
-      };
+    case SET_CALL_ACCEPTED:
+      return { ...state, callAccepted: true };
+    case SET_USER_AUDIO:
+      return { ...state, userAudio: action.payload };
+    case SET_CALL_ENDED:
+      return { ...state, callEnded: true };
+    case RESET_CALL:
+      return { state };
     default:
       return state;
   }

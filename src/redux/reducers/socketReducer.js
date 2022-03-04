@@ -1,9 +1,23 @@
-import { SOCKET_CONNECT } from "../constants/socketConstants";
+import {
+  GET_ONLINE_USERS,
+  LISTEN_INCOMING_CALL,
+  LISTEN_MY_SOCKET_ID,
+  RESET_INCOMING_CALL,
+  SOCKET_CONNECT,
+} from "../constants/socketConstants";
 
 export const socketReducer = (state = {}, action) => {
   switch (action.type) {
     case SOCKET_CONNECT:
       return { ...state, socket: action.payload };
+    case GET_ONLINE_USERS:
+      return { ...state, onlineUsers: action.payload };
+    case LISTEN_INCOMING_CALL:
+      return { ...state, call: action.payload };
+    case LISTEN_MY_SOCKET_ID:
+      return { ...state, mySocketId: action.payload };
+    case RESET_INCOMING_CALL:
+      return { ...state, call: {} };
     default:
       return state;
   }

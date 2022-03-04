@@ -1,21 +1,23 @@
 import React, { useEffect } from "react";
-import { Col } from "react-bootstrap";
+import { Col, Button } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
-import { getAudioStream } from "../redux/actions/callActions";
+import { getAudioStream, endCall } from "../redux/actions/callActions";
 
 const CallComponent = () => {
   const dispatch = useDispatch();
-  const { audioStream, userAudio } = useSelector((state) => state.call);
+  const { localStream, userAudio, callAccepted, callEnded } = useSelector(
+    (state) => state.call
+  );
 
   useEffect(() => {
-    if (!audioStream) {
+    if (!localStream) {
       dispatch(getAudioStream());
     } else {
       const localAudio = document.getElementById("localVideo");
-      localAudio.srcObject = audioStream;
+      localAudio.srcObject = localStream;
       localAudio.play();
     }
-  }, [audioStream, dispatch]);
+  }, [localStream, dispatch]);
 
   useEffect(() => {
     if (userAudio) {
@@ -28,13 +30,22 @@ const CallComponent = () => {
   return (
     <>
       <Col md={6}>
-        {audioStream && (
+        {localStream && (
           <video id="localVideo" playsInline autoPlay muted controls />
         )}
       </Col>
-      <Col md={6}>
-        <video id="remoteVideo" playsInline autoPlay controls />
-      </Col>
+      {userAudio && (
+        <Col md={6}>
+          <video id="remoteVideo" playsInline autoPlay controls />
+        </Col>
+      )}
+      {!callEnded && callAccepted && (
+        <div>
+          <Button variant="danger" onClick={() => dispatch(endCall())}>
+            End Call
+          </Button>
+        </div>
+      )}
     </>
   );
 };

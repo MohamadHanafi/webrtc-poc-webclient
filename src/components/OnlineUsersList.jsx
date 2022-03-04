@@ -5,9 +5,7 @@ import { callUser } from "../redux/actions/callActions";
 
 const OnlineUsersList = () => {
   const dispatch = useDispatch();
-  const { socket, onlineUsers, mySocketId } = useSelector(
-    (state) => state.socket
-  );
+  const { onlineUsers, mySocketId } = useSelector((state) => state.socket);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {

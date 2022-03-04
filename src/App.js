@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import Login from "./components/Login";
 import OnlineUsersList from "./components/OnlineUsersList";
@@ -20,8 +20,8 @@ function App() {
   const { socket } = useSelector((state) => state.socket);
 
   useEffect(() => {
-    dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
-    // dispatch(connectSocket("http://localhost:5000"));
+    // dispatch(connectSocket(process.env.REACT_APP_SERVER_URL));
+    dispatch(connectSocket("http://localhost:5000"));
     // dispatch(connectSocket("https://webrtc-poc-backend.herokuapp.com/"));
   }, [dispatch]);
 
@@ -30,9 +30,8 @@ function App() {
       dispatch(listenForMySocketId());
       dispatch(getOnlineUsers());
       dispatch(listenForIncomingCall());
-      socket.emitUserJoined(userInfo);
     }
-  }, [userInfo, dispatch]);
+  }, [userInfo, dispatch, socket]);
 
   return (
     <Container>

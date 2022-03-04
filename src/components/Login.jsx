@@ -1,15 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Form, Button } from "react-bootstrap";
 import { loginRequest } from "../redux/actions/loginActions";
 
 const Login = () => {
   const { userInfo, error } = useSelector((state) => state.login);
+  const { socket } = useSelector((state) => state.socket);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (userInfo) {
+      socket.emitUserJoined(userInfo);
+    }
+  }, [userInfo, socket]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

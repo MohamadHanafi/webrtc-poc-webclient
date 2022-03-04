@@ -1,36 +1,53 @@
-import { io } from "socket.io-client";
-import { SOCKET_CONNECT } from "../constants/socketConstants";
+import { Socket } from "../../webrtc/Socket";
+import {
+  GET_ONLINE_USERS,
+  LISTEN_INCOMING_CALL,
+  LISTEN_MY_SOCKET_ID,
+  SOCKET_CONNECT,
+} from "../constants/socketConstants";
 
 export const connectSocket = (serverURL) => async (dispatch) => {
-  const socket = io(serverURL);
+  const socket = new Socket(serverURL);
   dispatch({
     type: SOCKET_CONNECT,
     payload: socket,
   });
 };
 
-export const emitter =
-  (message, data, actionType) => async (dispatch, getState) => {
-    const { socket } = getState().socket;
-    socket.emit(message, data);
-
+export const getOnlineUsers = () => async (dispatch, getState) => {
+  const { socket } = getState().socket;
+  socket.listener("newUser", (users) => {
     dispatch({
-      type: actionType,
-      payload: data,
+      type: GET_ONLINE_USERS,
+      payload: users,
     });
-  };
+  });
+};
 
-export const listener =
-  (message, actionType, callback) => async (dispatch, getState) => {
-    const { socket } = getState().socket;
-    socket.on(message, (data) => {
-      console.log(data);
-      if (callback) {
-        callback(data);
-      }
-      dispatch({
-        type: actionType,
-        payload: data,
-      });
+export const listenForIncomingCall = () => async (dispatch, getState) => {
+  const { socket } = getState().socket;
+  socket.listener("callUser", ({ offer, from: { socketId, name } }) => {
+    console.log("callUser", offer, socketId, name);
+    dispatch({
+      type: LISTEN_INCOMING_CALL,
+      payload: {
+        isReceivingCall: true,
+        offer,
+        caller: {
+          name,
+          socketId,
+        },
+      },
     });
-  };
+  });
+};
+
+export const listenForMySocketId = () => async (dispatch, getState) => {
+  const { socket } = getState().socket;
+  socket.listener("me", (socketId) => {
+    dispatch({
+      type: LISTEN_MY_SOCKET_ID,
+      payload: socketId,
+    });
+  });
+};
